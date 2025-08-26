@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Te adoro 💖</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0a;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Mensaje central */
+    .mensaje {
+      position: absolute;
+      top: 15%;
+      text-align: center;
+      font-size: clamp(18px, 5vw, 32px);
+      background: linear-gradient(270deg, #fff, #ffb6f9, #ffacf8, #ff9dd6, #ffffff);
+      background-size: 600% 600%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradienteTexto 8s ease infinite;
+      font-weight: bold;
+      text-shadow: 0 0 8px rgb(247, 245, 246);
+      z-index: 10;
+      padding: 0 10px;
+    }
+
+    @keyframes gradienteTexto {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Contenedor de partículas */
+    .contenedor {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .texto {
+      position: absolute;
+      font-size: clamp(16px, 4vw, 28px);
+      font-weight: bold;
+      background: linear-gradient(270deg, #ffb6f9, #ff95ff, #f8f7f8, #fd80d4, #fff);
+      background-size: 600% 600%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradienteTexto 5s ease infinite;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    /* Partículas doradas en forma de rayos */
+    .particula-linea {
+      position: absolute;
+      width: 2px;
+      height: 18px;
+      background: linear-gradient(to bottom, #ffd700, #ffae00, transparent);
+      transform-origin: center;
+      opacity: 1;
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    /* Partículas doradas en forma de corazoncito */
+    .particula-corazon {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #f8f7f8;
+      transform: rotate(45deg);
+      opacity: 1;
+      pointer-events: none;
+    }
+    .particula-corazon::before,
+    .particula-corazon::after {
+      content: "";
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #f088d6;
+      border-radius: 50%;
+    }
+    .particula-corazon::before {
+      left: -6px;
+      top: 0;
+    }
+    .particula-corazon::after {
+      top: -6px;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="mensaje">💖 Dale tap, tap, presiosota o desliza por la pantalla 💕</div>
+  <div class="contenedor" id="contenedor"></div>
+
+  <script>
+    const TEXTO_PARTICULA = "Te adoro"; // <- Aquí cambias el texto
+    const contenedor = document.getElementById("contenedor");
+    let fase = 1;
+    let ultimaFase = Date.now();
+
+    function crearTexto(x, y) {
+      const span = document.createElement("span");
+      span.className = "texto";
+      span.textContent = TEXTO_PARTICULA;
+
+      span.style.left = `${x}px`;
+      span.style.top = `${y}px`;
+      span.style.opacity = "1";
+      span.style.transition = "transform 4s linear, opacity 4s linear";
+
+      contenedor.appendChild(span);
+
+      requestAnimationFrame(() => {
+        if (fase === 1) {
+          span.style.transform = `translateY(80vh)`;
+        } else {
+          const randX = (Math.random() - 0.5) * 200;
+          span.style.transform = `translate(${randX}px, 90vh) rotate(${Math.random() * 360}deg)`;
+        }
+        span.style.opacity = "0";
+      });
+
+      setTimeout(() => span.remove(), 5000);
+    }
+
+    function lluvia() {
+      if (fase === 1) {
+        for (let i = 0; i < 3; i++) {
+          const x = Math.random() * window.innerWidth;
+          const y = -20;
+          crearTexto(x, y);
+        }
+      } else {
+        const x = Math.random() * window.innerWidth;
+        const y = -20;
+        crearTexto(x, y);
+      }
+      requestAnimationFrame(lluvia);
+    }
+
+    setInterval(() => {
+      if (Date.now() - ultimaFase > 15000) { // Cambia cada 15 seg
+        fase = fase === 1 ? 2 : 1;
+        ultimaFase = Date.now();
+      }
+    }, 1000);
+
+    // efecto al mover el mouse/tocar
+    document.addEventListener("mousemove", e => {
+      crearTexto(e.clientX, e.clientY);
+    });
+    document.addEventListener("touchmove", e => {
+      for (let touch of e.touches) {
+        crearTexto(touch.clientX, touch.clientY);
+      }
+    });
+
+    // 🔥 Explosión dorada tipo fuegos artificiales (corazoncitos o rayos)
+    function explosionDorada(x, y) {
+      const numParticulas = 40; // cantidad de partículas
+      const usarCorazones = true; // cambia a false para usar rayos
+
+      // 🔊 reproducir sonido aleatorio
+      const sonidos = ["fire.mp3", "fire.mp3", "fire.mp3"];
+      const sonido = sonidos[Math.floor(Math.random() * sonidos.length)];
+      reproducirSonido(sonido);
+
+      for (let i = 0; i < numParticulas; i++) {
+        const p = document.createElement("div");
+        p.className = usarCorazones ? "particula-corazon" : "particula-linea";
+        p.style.left = x + "px";
+        p.style.top = y + "px";
+        contenedor.appendChild(p);
+
+        const angulo = Math.random() * 2 * Math.PI;
+        const velocidad = Math.random() * 6 + 3;
+        const dx = Math.cos(angulo) * velocidad;
+        const dy = Math.sin(angulo) * velocidad;
+
+        let px = x, py = y;
+        let opacidad = 1;
+        let frame = 0;
+
+        function animar() {
+          frame++;
+          px += dx;
+          py += dy + frame * 0.05; // efecto gravedad
+          opacidad -= 0.02;
+
+          p.style.left = px + "px";
+          p.style.top = py + "px";
+          p.style.opacity = opacidad;
+          p.style.transform = `rotate(${angulo}rad)`;
+
+          if (opacidad > 0) {
+            requestAnimationFrame(animar);
+          } else {
+            p.remove();
+          }
+        }
+        requestAnimationFrame(animar);
+      }
+    }
+
+    // Función para reproducir sonidos
+    function reproducirSonido(nombre) {
+      const audio = new Audio(nombre);
+      audio.volume = 0.5;
+      audio.play().catch(() => {}); // evita error si autoplay bloqueado
+    }
+
+    // Evento click/tap para lanzar fuegos artificiales
+    document.addEventListener("click", e => {
+      explosionDorada(e.clientX, e.clientY);
+    });
+    document.addEventListener("touchstart", e => {
+      for (let touch of e.touches) {
+        explosionDorada(touch.clientX, touch.clientY);
+      }
+    });
+
+    lluvia();
+  </script>
+  
+</body>
+</html>
+
+
