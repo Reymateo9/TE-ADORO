@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Te adoro 💖</title>
+  <title>Te adoro mi Sra.</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -16,7 +16,6 @@
       font-family: 'Segoe UI', sans-serif;
     }
 
-    /* Mensaje central */
     .mensaje {
       position: absolute;
       top: 15%;
@@ -39,7 +38,6 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* Contenedor de partículas */
     .contenedor {
       position: absolute;
       top: 0; left: 0;
@@ -62,7 +60,6 @@
       user-select: none;
     }
 
-    /* Partículas doradas en forma de rayos */
     .particula-linea {
       position: absolute;
       width: 2px;
@@ -74,7 +71,6 @@
       pointer-events: none;
     }
 
-    /* Partículas doradas en forma de corazoncito */
     .particula-corazon {
       position: absolute;
       width: 12px;
@@ -93,25 +89,30 @@
       background: #f088d6;
       border-radius: 50%;
     }
-    .particula-corazon::before {
-      left: -6px;
-      top: 0;
-    }
-    .particula-corazon::after {
-      top: -6px;
-      left: 0;
-    }
+    .particula-corazon::before { left: -6px; top: 0; }
+    .particula-corazon::after { top: -6px; left: 0; }
   </style>
 </head>
 <body>
-  <div class="mensaje">💖 Dale tap, tap, presiosota o desliza por la pantalla 💕</div>
+  <div class="mensaje">💕 Dale tap, tap, presiosota o desliza por la pantalla 💕</div>
   <div class="contenedor" id="contenedor"></div>
 
   <script>
-    const TEXTO_PARTICULA = "Te adoro"; // <- Aquí cambias el texto
+    const TEXTO_PARTICULA = "Te adoro";
     const contenedor = document.getElementById("contenedor");
     let fase = 1;
     let ultimaFase = Date.now();
+
+    let mensajeVisible = true;
+    const mensaje = document.querySelector(".mensaje");
+    function ocultarMensaje() {
+      if (mensajeVisible) {
+        mensaje.style.transition = "opacity 0.5s";
+        mensaje.style.opacity = 0;
+        mensajeVisible = false;
+        setTimeout(() => mensaje.remove(), 600);
+      }
+    }
 
     function crearTexto(x, y) {
       const span = document.createElement("span");
@@ -142,43 +143,35 @@
       if (fase === 1) {
         for (let i = 0; i < 3; i++) {
           const x = Math.random() * window.innerWidth;
-          const y = -20;
-          crearTexto(x, y);
+          crearTexto(x, -20);
         }
       } else {
-        const x = Math.random() * window.innerWidth;
-        const y = -20;
-        crearTexto(x, y);
+        crearTexto(Math.random() * window.innerWidth, -20);
       }
       requestAnimationFrame(lluvia);
     }
 
     setInterval(() => {
-      if (Date.now() - ultimaFase > 15000) { // Cambia cada 15 seg
+      if (Date.now() - ultimaFase > 15000) {
         fase = fase === 1 ? 2 : 1;
         ultimaFase = Date.now();
       }
     }, 1000);
 
-    // efecto al mover el mouse/tocar
-    document.addEventListener("mousemove", e => {
-      crearTexto(e.clientX, e.clientY);
-    });
-    document.addEventListener("touchmove", e => {
-      for (let touch of e.touches) {
-        crearTexto(touch.clientX, touch.clientY);
-      }
-    });
+    document.addEventListener("mousemove", e => { ocultarMensaje(); crearTexto(e.clientX, e.clientY); });
+    document.addEventListener("touchmove", e => { ocultarMensaje(); for (let t of e.touches) crearTexto(t.clientX, t.clientY); });
 
-    // 🔥 Explosión dorada tipo fuegos artificiales (corazoncitos o rayos)
+    // 🔥 Explosión con menos lag y un solo audio
+    const audioBase = new Audio("fire.mp3");
+
     function explosionDorada(x, y) {
-      const numParticulas = 40; // cantidad de partículas
-      const usarCorazones = true; // cambia a false para usar rayos
+      const numParticulas = 25; // menos partículas = más fluidez
+      const usarCorazones = true;
 
-      // 🔊 reproducir sonido aleatorio
-      const sonidos = ["fire.mp3", "fire.mp3", "fire.mp3"];
-      const sonido = sonidos[Math.floor(Math.random() * sonidos.length)];
-      reproducirSonido(sonido);
+      // reproducir audio clon para no recargarlo
+      const audio = audioBase.cloneNode();
+      audio.volume = 0.5;
+      audio.play().catch(()=>{});
 
       for (let i = 0; i < numParticulas; i++) {
         const p = document.createElement("div");
@@ -188,55 +181,34 @@
         contenedor.appendChild(p);
 
         const angulo = Math.random() * 2 * Math.PI;
-        const velocidad = Math.random() * 6 + 3;
+        const velocidad = Math.random() * 4 + 2; // menos velocidad extrema
         const dx = Math.cos(angulo) * velocidad;
         const dy = Math.sin(angulo) * velocidad;
 
         let px = x, py = y;
         let opacidad = 1;
-        let frame = 0;
 
         function animar() {
-          frame++;
           px += dx;
-          py += dy + frame * 0.05; // efecto gravedad
-          opacidad -= 0.02;
+          py += dy + 0.2; // ligera gravedad
+          opacidad -= 0.10;
 
           p.style.left = px + "px";
           p.style.top = py + "px";
           p.style.opacity = opacidad;
-          p.style.transform = `rotate(${angulo}rad)`;
 
-          if (opacidad > 0) {
-            requestAnimationFrame(animar);
-          } else {
-            p.remove();
-          }
+          if (opacidad > 0) requestAnimationFrame(animar);
+          else p.remove();
         }
         requestAnimationFrame(animar);
       }
     }
 
-    // Función para reproducir sonidos
-    function reproducirSonido(nombre) {
-      const audio = new Audio(nombre);
-      audio.volume = 0.5;
-      audio.play().catch(() => {}); // evita error si autoplay bloqueado
-    }
-
-    // Evento click/tap para lanzar fuegos artificiales
-    document.addEventListener("click", e => {
-      explosionDorada(e.clientX, e.clientY);
-    });
-    document.addEventListener("touchstart", e => {
-      for (let touch of e.touches) {
-        explosionDorada(touch.clientX, touch.clientY);
-      }
-    });
+    document.addEventListener("click", e => { ocultarMensaje(); explosionDorada(e.clientX, e.clientY); });
+    document.addEventListener("touchstart", e => { ocultarMensaje(); for (let t of e.touches) explosionDorada(t.clientX, t.clientY); });
 
     lluvia();
   </script>
-  
 </body>
 </html>
 
